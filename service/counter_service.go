@@ -2,9 +2,10 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"wxcloudrun-golang/db/dao"
@@ -95,9 +96,9 @@ func upsertCounter(r *http.Request) (int32, error) {
 	currentCounter, err := getCurrentCounter()
 	var count int32
 	createdAt := time.Now()
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, err
-	} else if err == gorm.ErrRecordNotFound {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		count = 1
 		createdAt = time.Now()
 	} else {
@@ -151,7 +152,7 @@ func getAction(r *http.Request) (string, error) {
 
 // getIndex 获取主页
 func getIndex() (string, error) {
-	b, err := ioutil.ReadFile("./index.html")
+	b, err := os.ReadFile("./index.html")
 	if err != nil {
 		return "", err
 	}
